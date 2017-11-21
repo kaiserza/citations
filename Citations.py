@@ -127,22 +127,42 @@ def helloCallBack():
           if '[BOOK][B]' in encoded_title:
             book_title = encoded_title.replace('[BOOK][B]', '')
             Text.insert(END, book_title + "\n")
-            document.add_paragraph(book_title)
+            run = document.add_paragraph().add_run(book_title)
+            font = run.font
+            font.name = 'Calibri'
+            font.size = Pt(4)
+            font.color.rgb = RGBColor(0xff, 0xff, 0xff)
           elif '[CITATION][C]' in encoded_title:
               citation_title = encoded_title.replace('[CITATION][C]', '')
               Text.insert(END, citation_title + "\n")
-              document.add_paragraph(citation_title)
+              run2 = document.add_paragraph().add_run(citation_title)
+              font2 = run2.font
+              font2.name = 'Calibri'
+              font2.size = Pt(4)
+              font2.color.rgb = RGBColor(0xff, 0xff, 0xff)
           elif '[HTML]' in encoded_title:
               html_title = encoded_title.replace('[HTML]', '')
               Text.insert(END, html_title + "\n")
-              document.add_paragraph(html_title)
+              run3 = document.add_paragraph().add_run(html_title)
+              font3 = run3.font
+              font3.name = 'Calibri'
+              font3.size = Pt(4)
+              font3.color.rgb = RGBColor(0xff, 0xff, 0xff)
           elif '[PDF]' in encoded_title:
             pdf_title = encoded_title.replace('[PDF]', '')
             Text.insert(END, pdf_title + "\n")
-            document.add_paragraph(pdf_title)
+            run4 = document.add_paragraph().add_run(pdf_title)
+            font4 = run4.font
+            font4.name = 'Calibri'
+            font4.size = Pt(4)
+            font4.color.rgb = RGBColor(0xff, 0xff, 0xff)
           else:
               Text.insert(END, encoded_title + "\n")
-              document.add_paragraph(encoded_title)
+              run5 = document.add_paragraph().add_run(encoded_title)
+              font5 = run5.font
+              font5.name = 'Calibri'
+              font5.size = Pt(4)
+              font5.color.rgb = RGBColor(0xff, 0xff, 0xff)
               document.save('demo.docx')
     except IndexError:
         if len(querier.articles) == 0:
