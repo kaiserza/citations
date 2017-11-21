@@ -90,6 +90,9 @@ def helloCallBack():
 
         list_of_annoying_shit = ['[BOOK]', '[CITATION]', '[HTML]', '[BOOK][B]', '[CITATION][C]']
 
+        #initialize creation of word document
+        document = Document()
+
         for x in range(2,10):
 
           #make strings from all elements
@@ -116,17 +119,23 @@ def helloCallBack():
           if '[BOOK][B]' in encoded_title:
             book_title = encoded_title.replace('[BOOK][B]', '')
             Text.insert(END, book_title + "\n")
+            document.add_paragraph(book_title)
           elif '[CITATION][C]' in encoded_title:
               citation_title = encoded_title.replace('[CITATION][C]', '')
               Text.insert(END, citation_title + "\n")
+              document.add_paragraph(citation_title)
           elif '[HTML]' in encoded_title:
               html_title = encoded_title.replace('[HTML]', '')
               Text.insert(END, html_title + "\n")
+              document.add_paragraph(html_title)
           elif '[PDF]' in encoded_title:
             pdf_title = encoded_title.replace('[PDF]', '')
             Text.insert(END, pdf_title + "\n")
+            document.add_paragraph(pdf_title)
           else:
               Text.insert(END, encoded_title + "\n")
+              document.add_paragraph(encoded_title)
+              document.save('demo.docx')
     except IndexError:
         if len(querier.articles) == 0:
             Text.insert(END, "Sorry, no results. Please try again.")
@@ -146,9 +155,16 @@ def helloCallBack():
   
     Text.insert(END, "----------------------------" + "\n")
 
-    Text.insert(END, "Open the word document that has been saved to this folder and copy the text from it, paste it into your paper, and you will have invisibly added 8 citations, which will be indexed in Google Scholar. Overflowing the citation databases will devalue the citation as a commodity and force a reckoning with how scholarship is evaluated today. Thank you!")
+    Text.insert(END, "Open the word document that has been saved to this folder and copy the text from it, paste it into your paper, and you will have invisibly added 8 citations, which will be indexed in Google Scholar. Overflowing the citation databases will devalue the citation as a commodity and force a reckoning with how scholarship is evaluated today. Thank you! \n \n")
 
-
+ 	#how do we save everything that's in the text box to a variable? 
+ 	# document = Document()
+    # run = document.add_paragraph().add_run(Text)
+    # font = run.font
+    # font.name = 'Calibri'
+    # font.size = Pt(12)
+    # document.save('demo.docx')
+    
     # sel_related_authors = CSSSelector('div.gs_a > a')
     # sel_related_authors_no_link = CSSSelector('div.gs_a')
     # if not sel_related_authors(tree2):
@@ -165,11 +181,6 @@ def helloCallBack():
 
 
 
-    #if it returns a cluster, we have to do something
-
-
-
-
     #print(scholar.citation_export(query2))
     #page = requests.get('http://econpy.pythonanywhere.com/ex/001.html')
     #tree = html.fromstring(page.content)
@@ -179,12 +190,6 @@ def helloCallBack():
 
 
     #below this line is word doc creator
-    # document = Document()
-    # run = document.add_paragraph().add_run(authors_time)
-    # font = run.font
-    # font.name = 'Calibri'
-    # font.size = Pt(12)
-    # document.save('demo.docx')
     
 
 
