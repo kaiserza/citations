@@ -23,6 +23,9 @@ top.geometry("700x500")
 
 
 var = StringVar()
+S = Text(top, height=2, width=50)
+S.pack()
+S.insert(END, "Insert the name of an article you've cited below")
 textbox = Entry(top, textvariable=var)
 textbox.focus_set()
 textbox.pack(pady=10, padx=10)
@@ -49,16 +52,17 @@ def helloCallBack():
         query.set_phrase("'" + user_input_formatted + "'")
         query.set_num_page_results(10)
 
-        Text.insert(END, "\n\n" + query.get_url() + "\n\n")
-
-        Text.insert(END, "Cert location: " + requests.certs.where() + "\n")
+        #----DEBUGGING----
+        #Text.insert(END, "\n\n" + query.get_url() + "\n\n")
+        #Text.insert(END, "Cert location: " + requests.certs.where() + "\n")
 
         querier.send_query(query)
-        Text.insert(END, querier.get_status() + "\n")
-
-        Text.insert(END, "querier = " + str(querier) + "\n")
-        Text.insert(END, "querier.articles length = " + str(len(querier.articles)) + "\n")
-        Text.insert(END, "querier.articles.attrs['url_versions'] length = " + str(len(querier.articles[0].attrs['url_versions'])) + "\n")
+        
+        #----DEBUGGING----
+        #Text.insert(END, querier.get_status() + "\n")
+        #Text.insert(END, "querier = " + str(querier) + "\n")
+        #Text.insert(END, "querier.articles length = " + str(len(querier.articles)) + "\n")
+        #Text.insert(END, "querier.articles.attrs['url_versions'] length = " + str(len(querier.articles[0].attrs['url_versions'])) + "\n")
 
         page = querier.articles[0].attrs['url_versions'][0]
         page_request = requests.get(page)
@@ -74,7 +78,11 @@ def helloCallBack():
  
         google_intro = "http://scholar.google.com/"
         related_query = google_intro + match2_href
-        Text.insert(END, "the query URL of related articles is " + related_query + "\n")
+        
+        #---MORE DEBUGGING----
+        #Text.insert(END, "the query URL of related articles is " + related_query + "\n")
+
+        Text.insert(END, "Related articles are: \n \n")
 
         related_page_request = requests.get(related_query)
         tree2 = html.fromstring(related_page_request.content)
