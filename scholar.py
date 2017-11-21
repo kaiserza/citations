@@ -166,6 +166,9 @@ import os
 import re
 import sys
 import warnings
+import requests
+import certifi
+import ssl
 
 try:
     # Try importing for Python 3
@@ -268,6 +271,7 @@ class ScholarUtils(object):
 
     @staticmethod
     def log(level, msg):
+
         if level not in ScholarUtils.LOG_LEVELS.keys():
             return
         if ScholarUtils.LOG_LEVELS[level] > ScholarConf.LOG_LEVEL:
@@ -640,6 +644,8 @@ class ScholarQuery(object):
         # basic data structure:
         self.attrs = {}
 
+        self.status = ""
+
     def set_num_page_results(self, num_page_results):
         self.num_results = ScholarUtils.ensure_int(
             num_page_results,
@@ -773,6 +779,7 @@ class SearchScholarQuery(ScholarQuery):
         self.timeframe = [None, None]
         self.include_patents = True
         self.include_citations = True
+        self.status = ""
 
     def set_words(self, words):
         """Sets words that *all* must be found in the result."""
@@ -943,6 +950,7 @@ class ScholarQuerier(object):
         self.articles = []
         self.query = None
         self.cjar = MozillaCookieJar()
+        self.status = ""
 
         # If we have a cookie file, load it:
         if ScholarConf.COOKIE_JAR_FILE and \
@@ -975,6 +983,7 @@ class ScholarQuerier(object):
                                        log_msg='dump of settings form HTML',
                                        err_msg='requesting settings failed')
         if html is None:
+            status = "GET SETTINGS HTML is None"
             return False
 
         # Now parse the required stuff out of the form. We require the
@@ -1005,6 +1014,7 @@ class ScholarQuerier(object):
                                        log_msg='dump of settings result HTML',
                                        err_msg='applying setttings failed')
         if html is None:
+            status = "HTML SET SETTINGS = None"
             return False
 
         ScholarUtils.log('info', 'settings applied')
@@ -1022,9 +1032,13 @@ class ScholarQuerier(object):
                                        log_msg='dump of query response HTML',
                                        err_msg='results retrieval failed')
         if html is None:
+            self.status += "None html on http response"
             return
 
         self.parse(html)
+
+    def get_status(self):
+        return self.status
 
     def get_citation_data(self, article):
         """
@@ -1084,10 +1098,15 @@ class ScholarQuerier(object):
         """
         if log_msg is None:
             log_msg = 'HTTP response data follow'
+            self.status += log_msg + "\n"
         if err_msg is None:
             err_msg = 'request failed'
+            self.status += err_msg + "\n"
         try:
             ScholarUtils.log('info', 'requesting %s' % unquote(url))
+            
+            os.environ["REQUESTS_CA_BUNDLE"] = "cacert.pem"
+            os.environ["SSL_CERT_FILE"] = "cacert.pem"
 
             req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT})
             hdl = self.opener.open(req)
@@ -1104,6 +1123,7 @@ class ScholarQuerier(object):
             return html
         except Exception as err:
             ScholarUtils.log('info', err_msg + ': %s' % err)
+            self.status += "ERROR: " + str(err) + "\n"
             return None
 
 
