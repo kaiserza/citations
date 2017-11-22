@@ -1,4 +1,3 @@
-#!/usr/bin/python
 import sys
 import time
 import traceback
@@ -17,216 +16,167 @@ from docx.shared import Pt
 from docx.shared import RGBColor
 from pprint import pprint
 from bs4 import BeautifulSoup
+from PyQt4 import QtCore, QtGui
+from mainwindow import Ui_MainWindow
+import unicodedata
 
-top=Tkinter.Tk()
-top.geometry("700x500")
+class StartQT4(QtGui.QMainWindow):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        # here connect to slots
+        QtCore.QObject.connect(self.ui.run_search,QtCore.SIGNAL("clicked()"), self.run_search_script)
+    def run_search_script(self):
+        search_results = self.ui.search_results
 
+        #THIS USES PYHTHON 2.X NOT 3.X
 
-var = StringVar()
-S = Text(top, height=2, width=50)
-S.pack()
-S.insert(END, "Insert the name of an article you've cited below")
-textbox = Entry(top, textvariable=var)
-textbox.focus_set()
-textbox.pack(pady=10, padx=10)
+        querier = scholar.ScholarQuerier()
+        settings = scholar.ScholarSettings()
+        settings._is_configured = True
+        settings.citform = 4
+        querier.apply_settings(settings)
 
-def helloCallBack():
-    global var, Text
+        user_input = unicode(self.ui.search_term.text())
+        user_input_formatted = '"' + user_input + '"'
+        search_results.appendPlainText("The article you entered is " + user_input_formatted + "\n")
 
-    #THIS USES PYHTHON 2.X NOT 3.X
+        try:
+            
+            query = scholar.SearchScholarQuery()
 
-    querier = scholar.ScholarQuerier()
-    settings = scholar.ScholarSettings()
-    settings._is_configured = True
-    settings.citform = 4
-    querier.apply_settings(settings)
+            query.set_phrase("'" + user_input_formatted + "'")
+            query.set_num_page_results(10)
 
-    user_input = str(var.get())
-    user_input_formatted = '"' + user_input + '"'
-    Text.insert(END, "The article you entered is " + user_input_formatted + "\n")
+            #----DEBUGGING----
+            search_results.appendPlainText("\n\n" + query.get_url() + "\n\n")
+            search_results.appendPlainText("Cert location: " + requests.certs.where() + "\n")
 
-    try:
-        
-        query = scholar.SearchScholarQuery()
+            querier.send_query(query)
+            
+            #----DEBUGGING----
+            search_results.appendPlainText(querier.get_status() + "\n")
+            search_results.appendPlainText("querier = " + str(querier) + "\n")
+            search_results.appendPlainText("querier.articles length = " + str(len(querier.articles)) + "\n")
+            search_results.appendPlainText("querier.articles.attrs['url_versions'] length = " + str(len(querier.articles[0].attrs['url_versions'])) + "\n")
 
-        query.set_phrase("'" + user_input_formatted + "'")
-        query.set_num_page_results(10)
+            page = querier.articles[0].attrs['url_versions'][0]
+            search_results.appendPlainText("page = " + str(page) + "\n")
 
-        #----DEBUGGING----
-        #Text.insert(END, "\n\n" + query.get_url() + "\n\n")
-        #Text.insert(END, "Cert location: " + requests.certs.where() + "\n")
+            os.environ['REQUESTS_CA_BUNDLE'] = requests.certs.where()
+            page_request = requests.get(page)
 
-        querier.send_query(query)
-        
-        #----DEBUGGING----
-        #Text.insert(END, querier.get_status() + "\n")
-        #Text.insert(END, "querier = " + str(querier) + "\n")
-        #Text.insert(END, "querier.articles length = " + str(len(querier.articles)) + "\n")
-        #Text.insert(END, "querier.articles.attrs['url_versions'] length = " + str(len(querier.articles[0].attrs['url_versions'])) + "\n")
+            tree = lxml.html.fromstring(page_request.content)
+            
+            authors_time = tree.xpath('//div[@class="gs_a:nth-child(1)"]/text()')
 
-        page = querier.articles[0].attrs['url_versions'][0]
-        page_request = requests.get(page)
+            sel2 = CSSSelector('div.gs_fl a:nth-child(4)')
+            sel_results_2 = sel2(tree)
+            match2 = sel_results_2[0]
+            match2_href = match2.get('href')
+     
+            google_intro = "http://scholar.google.com/"
+            related_query = google_intro + match2_href
+            
+            #---MORE DEBUGGING----
+            search_results.appendPlainText("the query URL of related articles is " + related_query + "\n")
 
-        tree = lxml.html.fromstring(page_request.content)
-        
-        authors_time = tree.xpath('//div[@class="gs_a:nth-child(1)"]/text()')
+            search_results.appendPlainText("Related articles are: \n \n")
 
-        sel2 = CSSSelector('div.gs_fl a:nth-child(4)')
-        sel_results_2 = sel2(tree)
-        match2 = sel_results_2[0]
-        match2_href = match2.get('href')
- 
-        google_intro = "http://scholar.google.com/"
-        related_query = google_intro + match2_href
-        
-        #---MORE DEBUGGING----
-        #Text.insert(END, "the query URL of related articles is " + related_query + "\n")
+            related_page_request = requests.get(related_query)
+            tree2 = html.fromstring(related_page_request.content)
 
-        Text.insert(END, "Related articles are: \n \n")
+            related_author_div = CSSSelector('div.gs_a')
+            related_author_link_div = CSSSelector('div.gs_a > a')
+            related_author_div_S = related_author_div(tree2)
+            related_author_link_div_S = related_author_link_div(tree2)
+            all_divs = related_author_div_S + related_author_link_div_S
 
-        related_page_request = requests.get(related_query)
-        tree2 = html.fromstring(related_page_request.content)
+            title_div = CSSSelector('.gs_rt')
+            title_div_S = title_div(tree2)
 
-        related_author_div = CSSSelector('div.gs_a')
-        related_author_link_div = CSSSelector('div.gs_a > a')
-        related_author_div_S = related_author_div(tree2)
-        related_author_link_div_S = related_author_link_div(tree2)
-        all_divs = related_author_div_S + related_author_link_div_S
+            list_of_annoying_shit = ['[BOOK]', '[CITATION]', '[HTML]', '[BOOK][B]', '[CITATION][C]']
 
-        title_div = CSSSelector('.gs_rt')
-        title_div_S = title_div(tree2)
+            #initialize creation of word document
+            document = Document()
 
-        list_of_annoying_shit = ['[BOOK]', '[CITATION]', '[HTML]', '[BOOK][B]', '[CITATION][C]']
+            for x in range(2,10):
 
-        #initialize creation of word document
-        document = Document()
+              #make strings from all elements
 
-        for x in range(2,10):
+              match = all_divs[x]
+              match_string = lxml.html.tostring(match)
 
-          #make strings from all elements
+              title_match = title_div_S[x]
+              title_match_string = lxml.html.tostring(title_match) 
 
-          match = all_divs[x]
-          match_string = lxml.html.tostring(match)
+              cleantext_title = BeautifulSoup(title_match_string)
+              basetext_title = cleantext_title.get_text()
+              
+              try:
+                encoded_title = remove_control_characters(basetext_title).decode('utf-8').encode('utf-8')
+              # print(basetext_title)
+              except Exception, e: 
+                continue
 
-          title_match = title_div_S[x]
-          title_match_string = lxml.html.tostring(title_match) 
+              cleantext = BeautifulSoup(match_string)
+              basetext = cleantext.get_text()
+              search_results.appendPlainText(basetext.encode('utf-8'))
 
-          cleantext_title = BeautifulSoup(title_match_string)
-          basetext_title = cleantext_title.get_text()
-          
-          try:
-            encoded_title = basetext_title.encode('utf-8')
-          # print(basetext_title)
-          except Exception, e: 
-            continue
-
-          cleantext = BeautifulSoup(match_string)
-          basetext = cleantext.get_text()
-          Text.insert(END, basetext.encode('utf-8'))
-
-          if '[BOOK][B]' in encoded_title:
-            book_title = encoded_title.replace('[BOOK][B]', '')
-            Text.insert(END, book_title + "\n")
-            run = document.add_paragraph().add_run(book_title)
-            font = run.font
-            font.name = 'Calibri'
-            font.size = Pt(4)
-            font.color.rgb = RGBColor(0xff, 0xff, 0xff)
-          elif '[CITATION][C]' in encoded_title:
-              citation_title = encoded_title.replace('[CITATION][C]', '')
-              Text.insert(END, citation_title + "\n")
-              run2 = document.add_paragraph().add_run(citation_title)
-              font2 = run2.font
-              font2.name = 'Calibri'
-              font2.size = Pt(4)
-              font2.color.rgb = RGBColor(0xff, 0xff, 0xff)
-          elif '[HTML]' in encoded_title:
-              html_title = encoded_title.replace('[HTML]', '')
-              Text.insert(END, html_title + "\n")
-              run3 = document.add_paragraph().add_run(html_title)
-              font3 = run3.font
-              font3.name = 'Calibri'
-              font3.size = Pt(4)
-              font3.color.rgb = RGBColor(0xff, 0xff, 0xff)
-          elif '[PDF]' in encoded_title:
-            pdf_title = encoded_title.replace('[PDF]', '')
-            Text.insert(END, pdf_title + "\n")
-            run4 = document.add_paragraph().add_run(pdf_title)
-            font4 = run4.font
-            font4.name = 'Calibri'
-            font4.size = Pt(4)
-            font4.color.rgb = RGBColor(0xff, 0xff, 0xff)
-          else:
-              Text.insert(END, encoded_title + "\n")
-              run5 = document.add_paragraph().add_run(encoded_title)
-              font5 = run5.font
-              font5.name = 'Calibri'
-              font5.size = Pt(4)
-              font5.color.rgb = RGBColor(0xff, 0xff, 0xff)
-              document.save('demo.docx')
-    except IndexError:
-        if len(querier.articles) == 0:
-            Text.insert(END, "Sorry, no results. Please try again.")
-        else:
+              if '[BOOK][B]' in encoded_title:
+                book_title = encoded_title.replace('[BOOK][B]', '')
+                search_results.appendPlainText(book_title + "\n")
+              elif '[CITATION][C]' in encoded_title:
+                citation_title = encoded_title.replace('[CITATION][C]', '')
+                search_results.appendPlainText(citation_title + "\n")
+                saveToWordDoc(document, citation_title)
+              elif '[HTML]' in encoded_title:
+                html_title = encoded_title.replace('[HTML]', '')
+                search_results.appendPlainText(html_title + "\n")
+                saveToWordDoc(document, html_title)
+              elif '[PDF]' in encoded_title:
+                pdf_title = encoded_title.replace('[PDF]', '')
+                search_results.appendPlainText(pdf_title + "\n")
+                saveToWordDoc(document, pdf_title)
+              else:
+                search_results.appendPlainText(encoded_title + "\n")
+                saveToWordDoc(document, encoded_title)
+                document.save('demo.docx')
+        except IndexError:
+            if len(querier.articles) == 0:
+                search_results.appendPlainText("Sorry, no results. Please try again.")
+            else:
+                e = sys.exc_info()
+                search_results.appendPlainText(str(e[0]) + "\n")
+                search_results.appendPlainText(str(e[1]) + "\n")
+                t = ''.join(traceback.format_tb(e[2]))
+                search_results.appendPlainText(t + "\n")
+        except:
             e = sys.exc_info()
-            Text.insert(END, str(e[0]) + "\n")
-            Text.insert(END, str(e[1]) + "\n")
+            search_results.appendPlainText(str(e[0]) + "\n")
+            search_results.appendPlainText(str(e[1]) + "\n")
             t = ''.join(traceback.format_tb(e[2]))
-            Text.insert(END, t + "\n")
-    except:
-        e = sys.exc_info()
-        Text.insert(END, str(e[0]) + "\n")
-        Text.insert(END, str(e[1]) + "\n")
-        t = ''.join(traceback.format_tb(e[2]))
-        Text.insert(END, t + "\n")
+            search_results.appendPlainText(t + "\n")
 
-  
-    Text.insert(END, "----------------------------" + "\n")
+      
+        search_results.appendPlainText("----------------------------" + "\n")
 
-    Text.insert(END, "Open the word document that has been saved to this folder and copy the text from it, paste it into your paper, and you will have invisibly added 8 citations, which will be indexed in Google Scholar. Overflowing the citation databases will devalue the citation as a commodity and force a reckoning with how scholarship is evaluated today. Thank you! \n \n")
+        search_results.appendPlainText("Open the word document that has been saved to this folder and copy the text from it, paste it into your paper, and you will have invisibly added 8 citations, which will be indexed in Google Scholar. Overflowing the citation databases will devalue the citation as a commodity and force a reckoning with how scholarship is evaluated today. Thank you! \n \n")
 
- 	#how do we save everything that's in the text box to a variable? 
- 	# document = Document()
-    # run = document.add_paragraph().add_run(Text)
-    # font = run.font
-    # font.name = 'Calibri'
-    # font.size = Pt(12)
-    # document.save('demo.docx')
-    
-    # sel_related_authors = CSSSelector('div.gs_a > a')
-    # sel_related_authors_no_link = CSSSelector('div.gs_a')
-    # if not sel_related_authors(tree2):
-    #   sel_related_authors_result = sel_related_authors_no_link(tree2)
-    #   print("nope")
-    # else:
-    #   sel_related_authors_result = sel_related_authors(tree2)
-    # match_related_authors_first = sel_related_authors_result[0].text
-    # print("the authors of the first related article are " + match_related_authors_first + "\n")
-
-    # for x in range(2, 10):
-    #   match_related_authors_first_inc = sel_related_authors_result[x].text
-    #   print(match_related_authors_first_inc)
+def saveToWordDoc(document, docText):
+  run = document.add_paragraph().add_run(docText)
+  font = run.font
+  font.name = 'Calibri'
+  font.size = Pt(4)
+  font.color.rgb = RGBColor(0xff, 0xff, 0xff)
 
 
+def remove_control_characters(s):
+    return "".join(ch for ch in s if unicodedata.category(ch)[0]!="C")
 
-    #print(scholar.citation_export(query2))
-    #page = requests.get('http://econpy.pythonanywhere.com/ex/001.html')
-    #tree = html.fromstring(page.content)
-
-
-
-
-
-    #below this line is word doc creator
-    
-
-
-B=Tkinter.Button(top,text="run",command= helloCallBack)
-B.pack()
-Text=Tkinter.Text(top,height=50)
-Text.pack()
-
-Text.insert(END, "Version 1.0.25\n")
-
-
-top.mainloop()
+if __name__ == "__main__":
+    app = QtGui.QApplication(sys.argv)
+    myapp = StartQT4()
+    myapp.show()
+    sys.exit(app.exec_())

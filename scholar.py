@@ -167,7 +167,6 @@ import re
 import sys
 import warnings
 import requests
-import certifi
 import ssl
 
 try:
