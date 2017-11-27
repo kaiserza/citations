@@ -38,6 +38,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.search_term.sizePolicy().hasHeightForWidth())
         self.search_term.setSizePolicy(sizePolicy)
+        self.search_term.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.search_term.setObjectName(_fromUtf8("search_term"))
         self.gridLayout.addWidget(self.search_term, 0, 0, 1, 1)
         self.run_search = QtGui.QPushButton(self.centralWidget)
@@ -45,6 +46,7 @@ class Ui_MainWindow(object):
         self.run_search.setObjectName(_fromUtf8("run_search"))
         self.gridLayout.addWidget(self.run_search, 0, 1, 1, 1)
         self.search_results = QtGui.QPlainTextEdit(self.centralWidget)
+        self.search_results.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.search_results.setObjectName(_fromUtf8("search_results"))
         self.gridLayout.addWidget(self.search_results, 1, 0, 1, 2)
         MainWindow.setCentralWidget(self.centralWidget)
@@ -55,8 +57,6 @@ class Ui_MainWindow(object):
         self.statusBar = QtGui.QStatusBar(MainWindow)
         self.statusBar.setObjectName(_fromUtf8("statusBar"))
         MainWindow.setStatusBar(self.statusBar)
-
-        self.search_term.returnPressed.connect(self.run_search.click)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)

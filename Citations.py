@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 from PyQt4 import QtCore, QtGui
 from mainwindow import Ui_MainWindow
 import unicodedata
+from os.path import expanduser
 
 class StartQT4(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -27,8 +28,11 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.setupUi(self)
         # here connect to slots
         QtCore.QObject.connect(self.ui.run_search,QtCore.SIGNAL("clicked()"), self.run_search_script)
+        self.ui.search_term.clearFocus()
+        self.ui.search_term.returnPressed.connect(self.ui.run_search.click)
     def run_search_script(self):
         search_results = self.ui.search_results
+        search_results.clear()
 
         #THIS USES PYHTHON 2.X NOT 3.X
 
@@ -50,19 +54,25 @@ class StartQT4(QtGui.QMainWindow):
             query.set_num_page_results(10)
 
             #----DEBUGGING----
+            """
             search_results.appendPlainText("\n\n" + query.get_url() + "\n\n")
             search_results.appendPlainText("Cert location: " + requests.certs.where() + "\n")
+            """
 
             querier.send_query(query)
             
             #----DEBUGGING----
+            """
             search_results.appendPlainText(querier.get_status() + "\n")
             search_results.appendPlainText("querier = " + str(querier) + "\n")
             search_results.appendPlainText("querier.articles length = " + str(len(querier.articles)) + "\n")
             search_results.appendPlainText("querier.articles.attrs['url_versions'] length = " + str(len(querier.articles[0].attrs['url_versions'])) + "\n")
+            """
 
             page = querier.articles[0].attrs['url_versions'][0]
+            """
             search_results.appendPlainText("page = " + str(page) + "\n")
+            """
 
             os.environ['REQUESTS_CA_BUNDLE'] = requests.certs.where()
             page_request = requests.get(page)
@@ -80,7 +90,9 @@ class StartQT4(QtGui.QMainWindow):
             related_query = google_intro + match2_href
             
             #---MORE DEBUGGING----
+            """
             search_results.appendPlainText("the query URL of related articles is " + related_query + "\n")
+            """
 
             search_results.appendPlainText("Related articles are: \n \n")
 
@@ -100,6 +112,8 @@ class StartQT4(QtGui.QMainWindow):
 
             #initialize creation of word document
             document = Document()
+
+            name = QtGui.QFileDialog.getSaveFileName(self, 'Save File', "Demo.docx",filter ="docx (*.docx *.)")
 
             for x in range(2,10):
 
@@ -142,7 +156,8 @@ class StartQT4(QtGui.QMainWindow):
               else:
                 search_results.appendPlainText(encoded_title + "\n")
                 saveToWordDoc(document, encoded_title)
-                document.save('demo.docx')
+                
+            document.save(str(name))
         except IndexError:
             if len(querier.articles) == 0:
                 search_results.appendPlainText("Sorry, no results. Please try again.")

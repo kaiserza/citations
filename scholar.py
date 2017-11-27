@@ -1104,8 +1104,10 @@ class ScholarQuerier(object):
         try:
             ScholarUtils.log('info', 'requesting %s' % unquote(url))
             
-            os.environ["REQUESTS_CA_BUNDLE"] = "cacert.pem"
-            os.environ["SSL_CERT_FILE"] = "cacert.pem"
+            os.environ['REQUESTS_CA_BUNDLE'] = requests.certs.where()
+            os.environ["SSL_CERT_FILE"] = requests.certs.where()
+
+            self.status = "About to request the url " + url + " with the certs " + requests.certs.where() + "\n"
 
             req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT})
             hdl = self.opener.open(req)
