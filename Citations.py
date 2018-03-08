@@ -46,6 +46,8 @@ class StartQT4(QtGui.QMainWindow):
         user_input_formatted = '"' + user_input + '"'
         search_results.appendPlainText("The article you entered is " + user_input_formatted + "\n")
 
+        wordDoc = ""
+
         try:
             
             query = scholar.SearchScholarQuery()
@@ -136,27 +138,31 @@ class StartQT4(QtGui.QMainWindow):
 
               cleantext = BeautifulSoup(match_string)
               basetext = cleantext.get_text()
-              search_results.appendPlainText(basetext.encode('utf-8'))
+              search_results.appendPlainText(basetext)
+
+              wordDoc += basetext + "\n"
 
               if '[BOOK][B]' in encoded_title:
                 book_title = encoded_title.replace('[BOOK][B]', '')
                 search_results.appendPlainText(book_title + "\n")
+                wordDoc += book_title + "\n"
               elif '[CITATION][C]' in encoded_title:
                 citation_title = encoded_title.replace('[CITATION][C]', '')
                 search_results.appendPlainText(citation_title + "\n")
-                saveToWordDoc(document, citation_title)
+                wordDoc += citation_title + "\n"
               elif '[HTML]' in encoded_title:
                 html_title = encoded_title.replace('[HTML]', '')
                 search_results.appendPlainText(html_title + "\n")
-                saveToWordDoc(document, html_title)
+                wordDoc += html_title + "\n"
               elif '[PDF]' in encoded_title:
                 pdf_title = encoded_title.replace('[PDF]', '')
                 search_results.appendPlainText(pdf_title + "\n")
-                saveToWordDoc(document, pdf_title)
+                wordDoc += pdf_title + "\n"
               else:
                 search_results.appendPlainText(encoded_title + "\n")
-                saveToWordDoc(document, encoded_title)
-                
+                wordDoc += encoded_title + "\n\n"
+
+            saveToWordDoc(document, wordDoc)
             document.save(str(name))
         except IndexError:
             if len(querier.articles) == 0:

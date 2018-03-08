@@ -1,4 +1,4 @@
-('/Developer-old/Python/citations zk/citations/build/citations/out00-PYZ.pyz',
+('/Developer-old/Python/citations zk/citations/build/Citations/out00-PYZ.pyz',
  [('PySide',
    '/usr/local/lib/python2.7/site-packages/PySide/__init__.py',
    'PYMODULE'),

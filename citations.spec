@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['citations.py'],
+a = Analysis(['Citations.py'],
              pathex=['/Developer-old/Python/citations zk/citations'],
              binaries=[],
              datas=[],
@@ -19,19 +19,15 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='citations',
+          name='Citations',
           debug=False,
           strip=False,
           upx=True,
-          console=False )
+          console=True )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
                a.datas,
                strip=False,
                upx=True,
-               name='citations')
-app = BUNDLE(coll,
-             name='citations.app',
-             icon=None,
-             bundle_identifier=None)
+               name='Citations')
