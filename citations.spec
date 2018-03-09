@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['Citations.py'],
-             pathex=['/Developer-old/Python/citations zk/citations'],
+             pathex=['/Users/skeptic/Documents/citations'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -23,7 +23,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=True )
+          console=False )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -31,3 +31,7 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                name='Citations')
+app = BUNDLE(coll,
+             name='Citations.app',
+             icon=None,
+             bundle_identifier=None)
