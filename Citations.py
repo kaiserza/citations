@@ -49,7 +49,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
             user_article_URL = 'http://scholar.google.com/scholar?hl=en&q='+user_input_formatted
             r = requests.get(user_article_URL)
-            search_results.appendPlainText(user_article_URL)
+            #search_results.appendPlainText(user_article_URL)
             tree = lxml.html.fromstring(r.text)
 
             #this is getting the link to the related articles
